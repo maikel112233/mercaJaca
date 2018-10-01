@@ -1,6 +1,6 @@
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-/*! lozad.js - v1.2.0 - 2018-01-23
+/*! lozad.js - v1.6.0 - 2018-07-24
 * https://github.com/ApoorvSaxena/lozad.js
 * Copyright (c) 2018 Apoorv Saxena; Licensed MIT */
 
@@ -24,7 +24,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
    * @const {boolean}
    * @private
    */
-  var isIE = document.documentMode;
+  var isIE = typeof document !== 'undefined' && document.documentMode;
 
   var defaultConfig = {
     rootMargin: '0px',
@@ -35,6 +35,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         if (isIE && element.getAttribute('data-iesrc')) {
           img.src = element.getAttribute('data-iesrc');
         }
+        if (element.getAttribute('data-alt')) {
+          img.alt = element.getAttribute('data-alt');
+        }
         element.appendChild(img);
       }
       if (element.getAttribute('data-src')) {
@@ -44,9 +47,13 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         element.srcset = element.getAttribute('data-srcset');
       }
       if (element.getAttribute('data-background-image')) {
-        element.style.backgroundImage = 'url(' + element.getAttribute('data-background-image') + ')';
+        element.style.backgroundImage = 'url(\'' + element.getAttribute('data-background-image') + '\')';
       }
-    }
+      if (element.getAttribute('data-toggle-class')) {
+        element.classList.toggle(element.getAttribute('data-toggle-class'));
+      }
+    },
+    loaded: function loaded() {}
   };
 
   function markAsLoaded(element) {
@@ -57,7 +64,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     return element.getAttribute('data-loaded') === 'true';
   };
 
-  var onIntersection = function onIntersection(load) {
+  var onIntersection = function onIntersection(load, loaded) {
     return function (entries, observer) {
       entries.forEach(function (entry) {
         if (entry.intersectionRatio > 0) {
@@ -66,6 +73,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           if (!isLoaded(entry.target)) {
             load(entry.target);
             markAsLoaded(entry.target);
+            loaded(entry.target);
           }
         }
       });
@@ -89,12 +97,13 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     var _defaultConfig$option = _extends({}, defaultConfig, options),
         rootMargin = _defaultConfig$option.rootMargin,
         threshold = _defaultConfig$option.threshold,
-        load = _defaultConfig$option.load;
+        load = _defaultConfig$option.load,
+        loaded = _defaultConfig$option.loaded;
 
     var observer = void 0;
 
     if (window.IntersectionObserver) {
-      observer = new IntersectionObserver(onIntersection(load), {
+      observer = new IntersectionObserver(onIntersection(load, loaded), {
         rootMargin: rootMargin,
         threshold: threshold
       });
@@ -114,6 +123,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           }
           load(elements[i]);
           markAsLoaded(elements[i]);
+          loaded(elements[i]);
         }
       },
       triggerLoad: function triggerLoad(element) {
@@ -123,6 +133,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
         load(element);
         markAsLoaded(element);
+        loaded(element);
       }
     };
   };
